@@ -25,7 +25,7 @@ def get_nirvana_data_dict():
             gff_gene_name = None
             gff_transcript = None
             gff_tag = ""
-            
+
             fields = line.decode("utf-8").strip().split("\t")
             record_type = fields[2]
 
@@ -37,23 +37,25 @@ def get_nirvana_data_dict():
 
             for field in info_fields:
                 key, value = field.split(" ")
-            
+
                 if key == "gene_name":
-                    gff_gene_name = value.replace('"','').upper()
+                    gff_gene_name = value.replace('"', '').upper()
                 elif key == "transcript_id" and value.startswith('"NM_'):
-                    gff_transcript = value.replace('"','')
+                    gff_transcript = value.replace('"', '')
                 elif key == "tag":
-                    gff_tag = value.replace('"','')
+                    gff_tag = value.replace('"', '')
 
             if gff_gene_name and gff_transcript:
                 chrom = fields[0].replace("chr", "")
                 start, end = fields[3:5]
                 canonical = gff_tag
-                nirvana_tx_dict.setdefault(gff_gene_name, {})[gff_transcript] = {
-                    "chrom":chrom,
-                    "start":start,
-                    "end":end,
-                    "canonical":canonical
+                nirvana_tx_dict.setdefault(gff_gene_name, {})[
+                    gff_transcript
+                ] = {
+                    "chrom": chrom,
+                    "start": start,
+                    "end": end,
+                    "canonical": canonical
                 }
 
     return nirvana_tx_dict
@@ -61,7 +63,7 @@ def get_nirvana_data_dict():
 
 def nirvana_transcripts(gene_name, verbose=True, nirvana_data_dict=None):
     gene_name = gene_name.upper()
-    
+
     if not nirvana_data_dict:
         nirvana_data_dict = get_nirvana_data_dict()
 
@@ -70,10 +72,10 @@ def nirvana_transcripts(gene_name, verbose=True, nirvana_data_dict=None):
 
         if nirvana_transcripts is None:
             new_gene = hgnc_queries.get_hgnc_symbol(gene_name)
-            
+
             if new_gene:
                 nirvana_transcripts = nirvana_data_dict.get(new_gene[0], None)
-                
+
                 if nirvana_transcripts:
                     HGNC_DICT[gene_name] = new_gene
                 else:
@@ -83,17 +85,20 @@ def nirvana_transcripts(gene_name, verbose=True, nirvana_data_dict=None):
     else:
         nirvana_transcripts = nirvana_data_dict.get(HGNC_DICT[gene_name], None)
 
-        
     if verbose:
         for transcript, transcript_data in nirvana_transcripts.items():
-            print("\t".join([gene_name, transcript, transcript_data["chrom"], transcript_data["start"], transcript_data["end"], transcript_data["canonical"]]))
+            print("\t".join([
+                gene_name, transcript, transcript_data["chrom"],
+                transcript_data["start"], transcript_data["end"],
+                transcript_data["canonical"]
+            ]))
 
     return nirvana_transcripts
 
 
 def get_panel_genes(panel_id, all_genes=False, version=None):
-    """ Get the genes from a panel id 
-    
+    """ Get the genes from a panel id
+
     Confidence level 3 is the green genes from PanelApp
     """
 
@@ -113,13 +118,13 @@ def get_panel_genes(panel_id, all_genes=False, version=None):
     else:
         ext_url = prefix_url
 
-    panel = get_panelapp_response(ext_url = ext_url)
+    panel = get_panelapp_response(ext_url=ext_url)
 
-    res = get_full_results_from_stupid_PanelApp_system(panel)
+    res = get_full_results_from_API(panel)
 
     for data in res:
         genes.append(data["gene_data"]["hgnc_symbol"])
-    
+
     return genes
 
 
@@ -133,7 +138,7 @@ def get_signedoff_panels_data():
     panels = {}
 
     signedoff_panels = get_panelapp_response(ext_url="panels/signedoff")
-    res = get_full_results_from_stupid_PanelApp_system(signedoff_panels)
+    res = get_full_results_from_API(signedoff_panels)
 
     for data in res:
         panels[data["name"]] = {
@@ -142,7 +147,7 @@ def get_signedoff_panels_data():
             "disease_group": data["disease_group"],
             "disease_sub_group": data["disease_sub_group"]
         }
-    
+
     return panels
 
 
@@ -190,7 +195,9 @@ def write_panels(panels, panel_folder):
         version = panel_data["version"]
 
         panel_genes = get_panel_genes(panel_id, version=version)
-        g2t = get_transcripts_for_panels(panel_genes, nirvana_g2t, nirvana_data_dict)
+        g2t = get_transcripts_for_panels(
+            panel_genes, nirvana_g2t, nirvana_data_dict
+        )
 
         signedoff_panels[panel_name] = {
             "id": panel_id,
@@ -211,7 +218,7 @@ def write_panels(panels, panel_folder):
         with open(file_name, "w") as f:
             for gene, transcript in signedoff_panels[panel]["g2t"].items():
                 f.write("{}\t{}\n".format(gene, transcript))
-        
+
         print("File {} written".format(file_name))
 
 
@@ -222,7 +229,7 @@ def write_group_diseases(panels, output_path):
     for panel_name, panel_data in panels.items():
         disease_group = panel_data["disease_group"]
         disease_sub_group = panel_data["disease_sub_group"]
-        
+
         if not disease_group:
             disease_group = "No group"
 
@@ -233,18 +240,16 @@ def write_group_diseases(panels, output_path):
 
         disease_groups.setdefault(disease_group, []).append(panel_name)
 
-    d = pd.DataFrame(dict([(k,pd.Series(v)) for k,v in disease_groups.items()]))
+    d = pd.DataFrame(dict([
+        (k, pd.Series(v)) for k, v in disease_groups.items()
+    ]))
 
-    d.to_csv(
-        output_path,
-        index=False,
-        sep="\t"
-    )
+    d.to_csv(output_path, index=False, sep="\t")
 
     print("{} was written".format(output_path))
 
 
-def get_full_results_from_stupid_PanelApp_system(data):
+def get_full_results_from_API(data):
     """ Get all the results
 
     Panelapp API doesn't show all the results
@@ -271,16 +276,18 @@ def get_full_results_from_stupid_PanelApp_system(data):
     return flat_list
 
 
-def get_panelapp_response(ext_url = None, full_url = None):
+def get_panelapp_response(ext_url=None, full_url=None):
     """ Get response from swagger panelapp api """
 
     if full_url:
         url = full_url
     else:
-        url = "https://panelapp.genomicsengland.co.uk/api/v1/{}".format(ext_url)
+        url = "https://panelapp.genomicsengland.co.uk/api/v1/{}".format(
+            ext_url
+        )
 
     try:
-        request = requests.get(url, headers = {"Accept": "application/json"})
+        request = requests.get(url, headers={"Accept": "application/json"})
     except Exception as e:
         print("Something went wrong: {}".format(e))
         sys.exit(-1)
@@ -311,14 +318,14 @@ def compare_panel_versions(panel_id, all_genes, version1, version2=None):
     for gene in panel_version1:
         if gene not in panel_version2:
             in_version1.append(gene)
-    
+
     for gene in panel_version2:
         if gene not in panel_version1:
             in_version2.append(gene)
 
     if in_version1:
         print("The following genes are present in {}:".format(version1))
-        
+
         for gene in in_version1:
             print(gene)
 
@@ -328,8 +335,12 @@ def compare_panel_versions(panel_id, all_genes, version1, version2=None):
         for gene in in_version2:
             print(gene)
 
-    print("There are {} genes in panel {} version {}".format(len(panel_version1), panel_id, version1))
-    print("There are {} genes in panel {} version {}".format(len(panel_version2), panel_id, version2))
+    print("There are {} genes in panel {} version {}".format(
+        len(panel_version1), panel_id, version1
+    ))
+    print("There are {} genes in panel {} version {}".format(
+        len(panel_version2), panel_id, version2
+    ))
 
 
 def main(parser, **sub_args):
@@ -355,16 +366,15 @@ def main(parser, **sub_args):
 
         if sub_args["write"] != False:
             write_panels(panels, sub_args["write"])
-        
+
         if sub_args["disease"] != False:
             write_group_diseases(panels, sub_args["disease"])
-
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Panelapp script")
     subparser = parser.add_subparsers(dest="subparser")
-    
+
     signedoff_parser = subparser.add_parser("signedoff", help="Get signedoff panels")
     signedoff_parser.add_argument(
         "--all",
