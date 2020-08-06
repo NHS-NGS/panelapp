@@ -5,10 +5,9 @@ import os
 import subprocess
 import sys
 
+import dxpy
 import pandas as pd
 import requests
-
-sys.path.append("/mnt/storage/home/kimy/projects/HGNC_api/bin")
 
 import hgnc_queries
 
@@ -151,11 +150,41 @@ def get_signedoff_panels_data():
     return panels
 
 
-def get_already_assigned_transcripts():
-    nirvana_g2t = "/mnt/storage/data/NGS/nirvana_genes2transcripts"
+def find_dnanexus_g2t():
+    data_objects = dxpy.find_data_objects(
+        name="nirvana_genes2transcripts*",
+        name_mode="glob",
+        project="project-Fkb6Gkj433GVVvj73J7x8KbV"
+    )
+
+    old_length = 0
+    saved_id = None
+    saved_project = None
+
+    for data in list(data_objects):
+        current_project = data["project"]
+        current_file_id = data["id"]
+        file = dxpy.DXFile(
+            dxid=current_file_id,
+            project=current_project,
+            mode="r"
+        )
+        current_length = sum(1 for line in file)
+
+        if current_length > old_length:
+            old_length = current_length
+            saved_project = current_project
+            saved_id = current_file_id
+
+        file.close()
+
+    return saved_project, saved_id
+
+
+def get_already_assigned_transcripts(project, file_id):
     g2t = {}
 
-    with open(nirvana_g2t) as f:
+    with dxpy.DXFile(dxid=file_id, project=project) as f:
         for line in f:
             gene, transcript = line.strip().split()
             g2t[gene] = transcript
@@ -185,9 +214,10 @@ def get_transcripts_for_panels(panel_genes, nirvana_g2t, nirvana_data_dict):
     return g2t
 
 
-def write_panels(panels, panel_folder):
+def write_panels(panels, panel_folder="panels"):
     signedoff_panels = {}
-    nirvana_g2t = get_already_assigned_transcripts()
+    project, file_id = find_dnanexus_g2t()
+    nirvana_g2t = get_already_assigned_transcripts(project, file_id)
     nirvana_data_dict = get_nirvana_data_dict()
 
     for panel_name, panel_data in panels.items():
@@ -209,7 +239,7 @@ def write_panels(panels, panel_folder):
         os.mkdir(panel_folder)
 
     for panel, fields in signedoff_panels.items():
-        file_name = "/mnt/storage/home/kimy/projects/panelapp/{}/{}_{}".format(
+        file_name = "{}/{}_{}".format(
             panel_folder,
             "_".join([ele for ele in panel.replace("-", " ").split()]),
             signedoff_panels[panel]["version"]
@@ -364,10 +394,10 @@ def main(parser, **sub_args):
     elif parser == "signedoff":
         panels = get_signedoff_panels_data()
 
-        if sub_args["write"] != False:
+        if sub_args["write"] is not False:
             write_panels(panels, sub_args["write"])
 
-        if sub_args["disease"] != False:
+        if sub_args["disease"] is not False:
             write_group_diseases(panels, sub_args["disease"])
 
 
