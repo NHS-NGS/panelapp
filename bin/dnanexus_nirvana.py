@@ -8,7 +8,16 @@ import hgnc_queries
 HGNC_DICT = {}
 
 
-def get_nirvana_data_dict(nirvana_refseq):
+def get_nirvana_data_dict(nirvana_refseq: str):
+    """ Return dict of gene2transcript
+
+    Args:
+        nirvana_refseq (str): Path to the nirvana gff refseq
+
+    Returns:
+        dict: Dict of gene2transcript
+    """
+
     nirvana_tx_dict = {}
 
     with gzip.open(nirvana_refseq) as nir_fh:
@@ -53,6 +62,16 @@ def get_nirvana_data_dict(nirvana_refseq):
 
 
 def nirvana_transcripts(gene_name, verbose=True, nirvana_data_dict=None):
+    """ Return dict of transcript2data
+
+    Args:
+        gene_name (str): Gene to get transcript
+        verbose (bool, optional): Verbose mode. Defaults to True.
+        nirvana_data_dict (dict, optional): Dict if get_nirvana_data_dict has been run. Defaults to None.
+
+    Returns:
+        dict: Dict of transcript2transcript_data
+    """
     gene_name = gene_name.upper()
 
     if not nirvana_data_dict:
@@ -88,6 +107,12 @@ def nirvana_transcripts(gene_name, verbose=True, nirvana_data_dict=None):
 
 
 def find_dnanexus_g2t():
+    """ Return project and file id of the most recent g2t
+
+    Returns:
+        tuple: Project id and file id of latest g2t
+    """
+
     data_objects = dxpy.find_data_objects(
         name="nirvana_genes2transcripts*",
         name_mode="glob",
@@ -118,6 +143,15 @@ def find_dnanexus_g2t():
 
 
 def get_already_assigned_transcripts(project, file_id):
+    """ Return dict of g2t
+
+    Args:
+        project (str): Project id
+        file_id (str): File id
+
+    Returns:
+        dict: Dict of g2t
+    """
     g2t = {}
 
     with dxpy.DXFile(dxid=file_id, project=project) as f:
