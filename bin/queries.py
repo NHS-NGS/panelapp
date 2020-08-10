@@ -3,10 +3,10 @@ import Panelapp
 
 
 def get_all_signedoff_panels():
-    """ Get the panels IDs and versions of the signedoff panels
+    """ Return list of signedoff panel objects
 
-    The API doesn't allow much with the signedoff panels
-    So need to get the version to use the manipulate the panel
+    Returns:
+        list: List of panel objects
     """
 
     panels = []
@@ -20,7 +20,17 @@ def get_all_signedoff_panels():
     return panels
 
 
-def compare_versions(original_panel, compare_version):
+def compare_versions(original_panel: Panelapp.Panel, compare_version: str):
+    """ Return matches and differences in the genes in the version given
+
+    Args:
+        original_panel (Panel object): Panel object to compare
+        compare_version (str): Version of the Panel object to compare to
+
+    Returns:
+        tuple: Tuple of sets with genes matched and not matched
+    """
+
     new_panel = Panelapp.Panel(
         panel_id=original_panel.id,
         version=compare_version,
@@ -36,7 +46,15 @@ def compare_versions(original_panel, compare_version):
     return (matches, difference)
 
 
-def get_signedoff_panel(panel_id):
+def get_signedoff_panel(panel_id: str):
+    """ Return data of signedoff panel
+
+    Args:
+        panel_id (str): Panel id
+
+    Returns:
+        dict: Data of the panel
+    """
     signedoff_panel = api.get_panelapp_response(
         ext_url="panels/signedoff/{}".format(panel_id)
     )

@@ -61,7 +61,9 @@ def get_nirvana_data_dict(nirvana_refseq: str):
     return nirvana_tx_dict
 
 
-def nirvana_transcripts(gene_name, verbose=True, nirvana_data_dict=None):
+def nirvana_transcripts(
+    gene_name: str, verbose: bool = True, nirvana_data_dict: dict = None
+):
     """ Return dict of transcript2data
 
     Args:
@@ -142,7 +144,7 @@ def find_dnanexus_g2t():
     return saved_project, saved_id
 
 
-def get_already_assigned_transcripts(project, file_id):
+def get_already_assigned_transcripts(project: str, file_id: str):
     """ Return dict of g2t
 
     Args:
