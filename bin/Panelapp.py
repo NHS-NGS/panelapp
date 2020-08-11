@@ -1,7 +1,10 @@
 import os
 
-import api
-import dnanexus_nirvana
+from .api import build_url, get_panelapp_response
+from .dnanexus_nirvana import (
+    find_dnanexus_g2t, get_already_assigned_transcripts,
+    get_nirvana_data_dict, nirvana_transcripts
+)
 
 
 class Panel():
@@ -36,8 +39,8 @@ class Panel():
             "confidence_level": self.confidence_level
         }
 
-        url = api.build_url(path, param)
-        self.data = api.get_panelapp_response(url)
+        url = build_url(path, param)
+        self.data = get_panelapp_response(url)
         self.name = self.data["name"]
         self.version = self.data["version"]
         self.genes = self.data["genes"]
@@ -59,19 +62,19 @@ class Panel():
 
         self.g2t = {}
         self.not_g2t = []
-        project_id, file_id = dnanexus_nirvana.find_dnanexus_g2t()
-        nirvana_g2t = dnanexus_nirvana.get_already_assigned_transcripts(
+        project_id, file_id = find_dnanexus_g2t()
+        nirvana_g2t = get_already_assigned_transcripts(
             project_id,
             file_id
         )
-        nirvana_data_dict = dnanexus_nirvana.get_nirvana_data_dict(refseq_gff)
+        nirvana_data_dict = get_nirvana_data_dict(refseq_gff)
 
         for gene in self.get_genes():
             if gene in nirvana_g2t:
                 selected_transcript = nirvana_g2t[gene]
                 self.g2t[gene] = selected_transcript
             else:
-                transcripts = dnanexus_nirvana.nirvana_transcripts(
+                transcripts = nirvana_transcripts(
                     gene,
                     False,
                     nirvana_data_dict
@@ -193,6 +196,9 @@ class Panel():
                 info["green_genes"] += 1
 
         return info
+
+    def is_signedoff(self):
+        return self.signedoff
 
     def __str__(self):
         """ Return a string with basic info on the panel
