@@ -74,6 +74,7 @@ def nirvana_transcripts(
     Returns:
         dict: Dict of transcript2transcript_data
     """
+
     gene_name = gene_name.upper()
 
     if not nirvana_data_dict:
@@ -154,6 +155,7 @@ def get_already_assigned_transcripts(project: str, file_id: str):
     Returns:
         dict: Dict of g2t
     """
+
     g2t = {}
 
     with dxpy.DXFile(dxid=file_id, project=project) as f:
