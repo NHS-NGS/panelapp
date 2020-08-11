@@ -1,5 +1,5 @@
-import api
-import Panelapp
+from .api import get_panelapp_response, get_full_results_from_API
+from .Panelapp import Panel
 
 
 def get_all_signedoff_panels():
@@ -11,8 +11,8 @@ def get_all_signedoff_panels():
 
     panels = []
 
-    signedoff_panels = api.get_panelapp_response(ext_url="panels/signedoff")
-    res = api.get_full_results_from_API(signedoff_panels)
+    signedoff_panels = get_panelapp_response(ext_url="panels/signedoff")
+    res = get_full_results_from_API(signedoff_panels)
 
     for data in res:
         panels.append(Panelapp.Panel(id=data["id"], version=data["version"]))
@@ -20,7 +20,7 @@ def get_all_signedoff_panels():
     return panels
 
 
-def compare_versions(original_panel: Panelapp.Panel, compare_version: str):
+def compare_versions(original_panel: Panel, compare_version: str):
     """ Return matches and differences in the genes in the version given
 
     Args:
@@ -31,7 +31,7 @@ def compare_versions(original_panel: Panelapp.Panel, compare_version: str):
         tuple: Tuple of sets with genes matched and not matched
     """
 
-    new_panel = Panelapp.Panel(
+    new_panel = Panel(
         panel_id=original_panel.id,
         version=compare_version,
         confidence_level=original_panel.confidence_level
@@ -55,7 +55,8 @@ def get_signedoff_panel(panel_id: str):
     Returns:
         dict: Data of the panel
     """
-    signedoff_panel = api.get_panelapp_response(
+
+    signedoff_panel = get_panelapp_response(
         ext_url="panels/signedoff/{}".format(panel_id)
     )
     return signedoff_panel
