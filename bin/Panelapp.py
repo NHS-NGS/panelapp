@@ -90,7 +90,7 @@ class Panel():
 
         return self.g2t
 
-    def write_panel(self, path: str = None):
+    def write(self, path: str = None):
         """ Write gene to transcript file
 
         Args:
@@ -98,19 +98,21 @@ class Panel():
         """
 
         if not path:
-            output_folder = "/panels"
+            output_folder = "panels"
         else:
             output_folder = "{}".format(path)
 
-        if not os.path.exists():
+        if not os.path.exists(output_folder):
             os.mkdir(output_folder)
         else:
             if not os.path.isdir(output_folder):
                 os.mkdir(output_folder)
 
-        file_path = "{}/{}".format(output_folder, self.name)
+        file_path = "{}/{}_{}.tsv".format(
+            output_folder, self.name, self.version
+        )
 
-        with open(file_path) as f:
+        with open(file_path, "w") as f:
             for gene, transcript in self.g2t.items():
                 f.write("{}\t{}\n".format(gene, transcript))
 
@@ -198,6 +200,12 @@ class Panel():
         return info
 
     def is_signedoff(self):
+        """ Return whether the panel is signedoff
+        Can be False if not signedoff or a data in (YYYY-MM-DD format)
+
+        Returns:
+            (bool, str): Signedoff date or bool
+        """
         return self.signedoff
 
     def __str__(self):
