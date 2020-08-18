@@ -4,7 +4,16 @@ import sys
 import requests
 
 
-def build_url(path, param):
+def build_url(path: list, param: dict):
+    """ Builds external url path with parameters
+
+    Args:
+        path (list): List with path that is going to be separated with "/"
+        param (dict): Dict containing parameters (key=param_name, value=param_value)
+
+    Returns:
+        str: External URL to pass to the base URL for the API call
+    """
     suffix = "/".join(path)
     ext_url = "{}".format(suffix)
     used_param = {key: val for key, val in param.items() if val}
@@ -18,8 +27,16 @@ def build_url(path, param):
     return ext_url
 
 
-def get_panelapp_response(ext_url=None, full_url=None):
-    """ Get response from swagger panelapp api """
+def get_panelapp_response(ext_url: str = None, full_url: str = None):
+    """ Make an API query
+
+    Args:
+        ext_url (str, optional): External path for the URL to add to the base URL. Defaults to None.
+        full_url (str, optional): Full url to use for the API call. Defaults to None.
+
+    Returns:
+        dict: Data from the API call
+    """
 
     if full_url:
         url = full_url
@@ -42,12 +59,18 @@ def get_panelapp_response(ext_url=None, full_url=None):
             sys.exit(-1)
 
 
-def get_full_results_from_API(data):
-    """ Get all the results
+def get_full_results_from_API(data: dict):
+    """ Get all the results from the API call
 
-    Panelapp API doesn't show all the results
-    To fix that, this function makes API calls while there's a pagination url
-    Return the data of every page
+    Panelapp API doesn't show all the results.
+    Instead, it returns another URL to point to the next page.
+    To fix that, this function makes API calls while there's a pagination url.
+
+    Args:
+        data (dict): Dict output from the API call
+
+    Returns:
+        list: Data of every page
     """
 
     res = []
