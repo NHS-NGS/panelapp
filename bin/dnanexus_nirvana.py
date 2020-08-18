@@ -137,6 +137,7 @@ def find_dnanexus_g2t():
         ) as f:
             current_length = sum(1 for line in f)
 
+        # Get the most recent G2T by checking which is the longest file
         if current_length > old_length:
             old_length = current_length
             saved_project = current_project
