@@ -15,7 +15,7 @@ def get_all_signedoff_panels():
     res = get_full_results_from_API(signedoff_panels)
 
     for data in res:
-        panels.append(Panelapp.Panel(id=data["id"], version=data["version"]))
+        panels.append(Panel(panel_id=data["id"], version=data["version"]))
 
     return panels
 
