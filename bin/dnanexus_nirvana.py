@@ -5,9 +5,6 @@ import dxpy
 import hgnc_queries
 
 
-HGNC_DICT = {}
-
-
 def get_nirvana_data_dict(nirvana_refseq: str):
     """ Return dict of gene2transcript
 
@@ -75,12 +72,13 @@ def nirvana_transcripts(
         dict: Dict of transcript2transcript_data
     """
 
+    hgnc_dict = {}
     gene_name = gene_name.upper()
 
     if not nirvana_data_dict:
         nirvana_data_dict = get_nirvana_data_dict()
 
-    if gene_name not in HGNC_DICT:
+    if gene_name not in hgnc_dict:
         nirvana_transcripts = nirvana_data_dict.get(gene_name, None)
 
         if nirvana_transcripts is None:
@@ -90,13 +88,13 @@ def nirvana_transcripts(
                 nirvana_transcripts = nirvana_data_dict.get(new_gene[0], None)
 
                 if nirvana_transcripts:
-                    HGNC_DICT[gene_name] = new_gene
+                    hgnc_dict[gene_name] = new_gene
                 else:
-                    HGNC_DICT[gene_name] = ""
+                    hgnc_dict[gene_name] = ""
             else:
-                HGNC_DICT[gene_name] = ""
+                hgnc_dict[gene_name] = ""
     else:
-        nirvana_transcripts = nirvana_data_dict.get(HGNC_DICT[gene_name], None)
+        nirvana_transcripts = nirvana_data_dict.get(hgnc_dict[gene_name], None)
 
     if verbose:
         for transcript, transcript_data in nirvana_transcripts.items():
