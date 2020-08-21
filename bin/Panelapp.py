@@ -201,7 +201,7 @@ class Panel():
 
     def is_signedoff(self):
         """ Return whether the panel is signedoff
-        Can be False if not signedoff or a data in (YYYY-MM-DD format)
+        Can be False if not signedoff or a date in (YYYY-MM-DD format)
 
         Returns:
             (bool, str): Signedoff date or bool
