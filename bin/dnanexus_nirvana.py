@@ -122,7 +122,7 @@ def find_dnanexus_g2t():
         project="project-Fkb6Gkj433GVVvj73J7x8KbV"
     )
 
-    old_length = 0
+    most_recent_date = 0
     saved_id = None
     saved_project = None
 
@@ -130,18 +130,15 @@ def find_dnanexus_g2t():
         current_project = data["project"]
         current_file_id = data["id"]
 
-        with dxpy.DXFile(
-            dxid=current_file_id,
-            project=current_project,
-            mode="r"
-        ) as f:
-            current_length = sum(1 for line in f)
+        g2t_file = dxpy.DXFile(
+            dxid=current_file_id, project=current_project)
+        creation_date = g2t_file.describe(fields=("created",))["created"]
 
-        # Get the most recent G2T by checking which is the longest file
-        if current_length > old_length:
-            old_length = current_length
-            saved_project = current_project
+        # Using timestamp to get most recent g2t file
+        if creation_date > most_recent_date:
+            most_recent_date = creation_date
             saved_id = current_file_id
+            saved_project = current_project
 
     return saved_project, saved_id
 
