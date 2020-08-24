@@ -2,8 +2,11 @@ from .api import get_panelapp_response, get_full_results_from_API
 from .Panelapp import Panel
 
 
-def get_all_signedoff_panels():
+def get_all_signedoff_panels(confidence_level: str = "3"):
     """ Return list of signedoff panel objects
+
+    Args:
+        confidence_level (str, optional): Specify. Defaults to "3".
 
     Returns:
         list: List of panel objects
@@ -15,7 +18,11 @@ def get_all_signedoff_panels():
     res = get_full_results_from_API(signedoff_panels)
 
     for data in res:
-        panels.append(Panel(panel_id=data["id"], version=data["version"]))
+        panels.append(Panel(
+            panel_id=data["id"],
+            version=data["version"],
+            confidence_level=confidence_level
+        ))
 
     return panels
 
