@@ -113,8 +113,10 @@ class Panel():
         )
 
         with open(file_path, "w") as f:
-            for gene, transcript in self.g2t.items():
-                f.write("{}\t{}\n".format(gene, transcript))
+            for gene in self.get_genes():
+                f.write("{}\t{}_{}\t{}\n".format(
+                    self.name, self.name, self.version, gene
+                ))
 
     def get_latest_version(self):
         """ Return latest possible version of current Panel object
