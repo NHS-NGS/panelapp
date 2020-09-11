@@ -50,7 +50,7 @@ def get_panelapp_response(ext_url: str = None, full_url: str = None):
     except Exception as e:
         print("Something went wrong: {}".format(e))
         sys.exit(-1)
-    
+
     if request.ok:
         data = json.loads(request.content.decode("utf-8"))
         return data
