@@ -76,7 +76,7 @@ def nirvana_transcripts(
     gene_name = gene_name.upper()
 
     if not nirvana_data_dict:
-        nirvana_data_dict = get_nirvana_data_dict()
+        nirvana_data_dict = get_nirvana_data_dict("GRCh37_RefSeq_26.gff.gz")
 
     if gene_name not in hgnc_dict:
         nirvana_transcripts = nirvana_data_dict.get(gene_name, None)
@@ -85,7 +85,7 @@ def nirvana_transcripts(
             new_gene = hgnc_queries.get_hgnc_symbol(gene_name)
 
             if new_gene:
-                nirvana_transcripts = nirvana_data_dict.get(new_gene[0], None)
+                nirvana_transcripts = nirvana_data_dict.get(new_gene, None)
 
                 if nirvana_transcripts:
                     hgnc_dict[gene_name] = new_gene
