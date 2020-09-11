@@ -114,34 +114,6 @@ class Panel():
             for gene in self.genes if gene
         ]
 
-    def get_g2t(self):
-        """ Return g2t dict
-
-        Returns:
-            dict: Dict of gene -> transcript
-        """
-
-        try:
-            self.g2t
-        except AttributeError as e:
-            print("{}. Please run assign_transcripts(gff_file)".format(e))
-        else:
-            return self.g2t
-
-    def get_non_g2t(self):
-        """ Return list of genes with no transcript
-
-        Returns:
-            list: List of genes with no transcript
-        """
-
-        try:
-            self.non_g2t
-        except AttributeError as e:
-            print("{}. Please run assign_transcripts(gff_file)".format(e))
-        else:
-            return self.non_g2t
-
     def get_data(self):
         """ Return the full data of the panel. Used for debug mainly
 
