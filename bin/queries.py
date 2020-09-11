@@ -12,17 +12,17 @@ def get_all_signedoff_panels(confidence_level: str = "3"):
         list: List of panel objects
     """
 
-    panels = []
+    panels = {}
 
     signedoff_panels = get_panelapp_response(ext_url="panels/signedoff")
     res = get_full_results_from_API(signedoff_panels)
 
     for data in res:
-        panels.append(Panel(
+        panels[data["id"]] = Panel(
             panel_id=data["id"],
             version=data["version"],
             confidence_level=confidence_level
-        ))
+        )
 
     return panels
 
@@ -67,3 +67,41 @@ def get_signedoff_panel(panel_id: str):
         ext_url="panels/signedoff/{}".format(panel_id)
     )
     return signedoff_panel
+
+
+def get_all_panels():
+    """ Returns all panels
+
+    Returns:
+        dict: All panels in Panelapp
+    """
+
+    all_panels = {}
+    data = get_panelapp_response(ext_url="panels")
+    panels = get_full_results_from_API(data)
+
+    for panel in panels:
+        all_panels[panel["id"]] = Panel(panel_id=panel["id"])
+
+    return all_panels
+
+
+def get_GMS_panels():
+    """Return all GMS panels to be analyzed in the lab
+
+    Returns:
+        dict: GMS_panels
+    """
+
+    gms_panels = {}
+
+    signedoff_panels = get_all_signedoff_panels()
+    all_panels = get_all_panels()
+
+    for panel_id in all_panels:
+        if panel_id in signedoff_panels:
+            gms_panels[panel_id] = signedoff_panels[panel_id]
+        else:
+            gms_panels[panel_id] = all_panels[panel_id]
+
+    return gms_panels
