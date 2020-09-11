@@ -10,7 +10,7 @@ from .dnanexus_nirvana import (
 class Panel():
     def __init__(
         self, panel_id: str, version: str = None,
-        confidence_level: str = None,
+        confidence_level: str = "3",
         assign_transcripts: str = False
     ):
         """ Initialise Panel object, call the PanelApp API to get data
@@ -29,6 +29,8 @@ class Panel():
 
         if assign_transcripts:
             self.assign_transcripts(assign_transcripts)
+
+        self.get_latest_signedoff()
 
     def query_panel_data(self):
         """ Query data to Panelapp API and assign data to attributes of the panel object """
@@ -90,6 +92,11 @@ class Panel():
 
         return self.g2t
 
+    def update_version(self, version: str, confidence_level: str = "3"):
+        self.version = version
+        self.confidence_level = confidence_level
+        self.query_panel_data()
+
     def write(self, path: str = None):
         """ Write gene to transcript file
 
@@ -108,8 +115,13 @@ class Panel():
             if not os.path.isdir(output_folder):
                 os.mkdir(output_folder)
 
+        panel_name = self.name.replace(" - ", " ")
+        panel_name = panel_name.replace("-", " ")
+        panel_name = panel_name.replace("/", " ")
+        panel_name = " ".join(panel_name.split(" "))
+
         file_path = "{}/{}_{}.tsv".format(
-            output_folder, self.name, self.version
+            output_folder, panel_name, self.version
         )
 
         with open(file_path, "w") as f:
@@ -117,6 +129,9 @@ class Panel():
                 f.write("{}\t{}_{}\t{}\n".format(
                     self.name, self.name, self.version, gene
                 ))
+
+    def get_id(self):
+        return self.id
 
     def get_latest_version(self):
         """ Return latest possible version of current Panel object
@@ -200,6 +215,20 @@ class Panel():
                 info["green_genes"] += 1
 
         return info
+
+    def get_latest_signedoff(self):
+        """ Return signedoff version of a panel
+
+        Returns:
+            str: Signedoff version of
+        """
+
+        if self.signedoff:
+            self.signedoff_version = self.version
+        else:
+            self.signedoff_version = None
+
+        return self.signedoff_version
 
     def is_signedoff(self):
         """ Return whether the panel is signedoff
