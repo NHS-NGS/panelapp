@@ -11,7 +11,6 @@ class Panel():
     def __init__(
         self, panel_id: str, version: str = None,
         confidence_level: str = "3",
-        assign_transcripts: str = False
     ):
         """ Initialise Panel object, call the PanelApp API to get data
 
@@ -26,9 +25,6 @@ class Panel():
         self.version = version
         self.confidence_level = confidence_level
         self.query_panel_data()
-
-        if assign_transcripts:
-            self.assign_transcripts(assign_transcripts)
 
         self.get_latest_signedoff()
 
@@ -51,46 +47,6 @@ class Panel():
             self.signedoff = self.data["signed_off"]
         else:
             self.signedoff = False
-
-    def assign_transcripts(self, refseq_gff: str):
-        """ Assign transcripts to the genes of the panel
-
-        Args:
-            refseq_gff (str): File path to the GFF
-
-        Returns:
-            dict: Dict linking genes and transcripts
-        """
-
-        self.g2t = {}
-        self.not_g2t = []
-        project_id, file_id = find_dnanexus_g2t()
-        nirvana_g2t = get_already_assigned_transcripts(
-            project_id,
-            file_id
-        )
-        nirvana_data_dict = get_nirvana_data_dict(refseq_gff)
-
-        for gene in self.get_genes():
-            if gene in nirvana_g2t:
-                selected_transcript = nirvana_g2t[gene]
-                self.g2t[gene] = selected_transcript
-            else:
-                transcripts = nirvana_transcripts(
-                    gene,
-                    False,
-                    nirvana_data_dict
-                )
-
-                if transcripts:
-                    for transcript, field in transcripts.items():
-                        if field["canonical"]:
-                            selected_transcript = transcript
-                            self.g2t[gene] = selected_transcript
-                else:
-                    self.not_g2t.append(gene)
-
-        return self.g2t
 
     def update_version(self, version: str, confidence_level: str = "3"):
         self.version = version
