@@ -1,10 +1,6 @@
 import os
 
 from .api import build_url, get_panelapp_response
-from .dnanexus_nirvana import (
-    find_dnanexus_g2t, get_already_assigned_transcripts,
-    get_nirvana_data_dict, nirvana_transcripts
-)
 
 
 class Panel():
