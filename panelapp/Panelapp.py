@@ -22,29 +22,40 @@ class Panel():
         self.confidence_level = confidence_level
         self.query_panel_data()
 
-        self.get_latest_signedoff()
-
     def query_panel_data(self):
-        """ Query data to Panelapp API and assign data to attributes of the panel object """
+        """ Query data to Panelapp API and assign data to attributes of the panel object 
+
+        Return:
+            None: if the panel wasn't found
+        """
 
         path = ["panels", self.id]
-        param = {
-            "version": self.version,
-            "confidence_level": self.confidence_level
-        }
+        param = {"version": self.version}
 
         url = build_url(path, param)
-        self.data = get_panelapp_response(url)
-        self.name = self.data["name"]
-        self.version = self.data["version"]
-        self.genes = self.data["genes"]
+        data = get_panelapp_response(url)
 
-        if "signed_off" in self.data:
-            self.signedoff = self.data["signed_off"]
-        else:
-            self.signedoff = False
+        if data:
+            self.data = data
+            self.name = self.data["name"]
+            self.hash_id = self.data["hash_id"]
+            self.version = self.data["version"]
+            self.relevant_disorders = self.data["relevant_disorders"]
+            self.set_genes()
+
+            if "signed_off" in self.data:
+                self.signedoff = self.data["signed_off"]
+            else:
+                self.signedoff = False
 
     def update_version(self, version: str, confidence_level: str = "3"):
+        """ Update the version and confidence level for the Panel object
+
+        Args:
+            version (str): Version to update to
+            confidence_level (str, optional): Confidence level. Defaults to "3".
+        """
+
         self.version = version
         self.confidence_level = confidence_level
         self.query_panel_data()
@@ -82,8 +93,32 @@ class Panel():
                     self.name, self.name, self.version, gene
                 ))
 
+    def get_name(self):
+        """ Return the panel name
+
+        Returns:
+            str: Panel name
+        """
+
+        return self.name
+
     def get_id(self):
+        """ Return panel id
+
+        Returns:
+            str: Panel id
+        """
+
         return self.id
+
+    def get_hash_id(self):
+        """ Return hash_id for the panel
+
+        Returns:
+            str: Hash id
+        """
+
+        return self.hash_id
 
     def get_latest_version(self):
         """ Return latest possible version of current Panel object
@@ -103,16 +138,61 @@ class Panel():
 
         return self.version
 
-    def get_genes(self):
-        """ Return list of genes of the Panel object
+    def get_relevant_disorders(self):
+        """ Return list of relevant disorders
+
+        Returns:
+            list: Relevant disorders
+        """
+
+        return self.relevant_disorders
+
+    def set_genes(self):
+        """ Set the genes to their appropriate confidence level """
+
+        self.genes = {}
+
+        for gene in self.data["genes"]:
+            if gene["confidence_level"] == "3":
+                self.genes.setdefault("3", []).append(
+                    gene["gene_data"]["hgnc_symbol"]
+                )
+            elif gene["confidence_level"] == "2":
+                self.genes.setdefault("2", []).append(
+                    gene["gene_data"]["hgnc_symbol"]
+                )
+            elif gene["confidence_level"] == "1":
+                self.genes.setdefault("1", []).append(
+                    gene["gene_data"]["hgnc_symbol"]
+                )
+            elif gene["confidence_level"] == "0":
+                self.genes.setdefault("0", []).append(
+                    gene["gene_data"]["hgnc_symbol"]
+                )
+
+    def get_genes(self, *confidence_levels: str):
+        """ Return list of genes
+        Can type 1,2,3 to get genes with appropriate confidence level to return
 
         Returns:
             list: List of genes
         """
-        return [
-            gene["gene_data"]["hgnc_symbol"]
-            for gene in self.genes if gene
-        ]
+
+        if confidence_levels:
+            genes_to_return = []
+
+            for level in confidence_levels:
+                genes_to_return.append(self.genes[str(level)])
+
+            genes_to_return = [
+                gene
+                for gene_list in genes_to_return
+                for gene in gene_list
+            ]
+        else:
+            genes_to_return = self.genes[self.confidence_level]
+
+        return genes_to_return
 
     def get_data(self):
         """ Return the full data of the panel. Used for debug mainly
@@ -129,30 +209,13 @@ class Panel():
         Returns:
             dict: Dict with green_genes and entity_types keys to access data
         """
+
         info = {
-            "green_genes": 0,
+            "green_genes": len(self.genes["3"]),
             "entity_types": self.data["stats"]
         }
 
-        for gene in self.genes:
-            if gene["confidence_level"] == "3":
-                info["green_genes"] += 1
-
         return info
-
-    def get_latest_signedoff(self):
-        """ Return signedoff version of a panel
-
-        Returns:
-            str: Signedoff version of
-        """
-
-        if self.signedoff:
-            self.signedoff_version = self.version
-        else:
-            self.signedoff_version = None
-
-        return self.signedoff_version
 
     def is_signedoff(self):
         """ Return whether the panel is signedoff
@@ -161,6 +224,7 @@ class Panel():
         Returns:
             (bool, str): Signedoff date or bool
         """
+
         return self.signedoff
 
     def __str__(self):
