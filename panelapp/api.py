@@ -4,7 +4,7 @@ import sys
 import requests
 
 
-def build_url(path: list, param: dict):
+def build_url(path: list, param: dict = None):
     """ Builds external url path with parameters
 
     Args:
@@ -14,15 +14,18 @@ def build_url(path: list, param: dict):
     Returns:
         str: External URL to pass to the base URL for the API call
     """
+
     suffix = "/".join(path)
     ext_url = "{}".format(suffix)
-    used_param = {key: val for key, val in param.items() if val}
 
-    if used_param:
-        parameters = "&".join(
-            ["{}={}".format(key, val) for key, val in used_param.items()]
-        )
-        ext_url = "{}?{}".format(suffix, parameters)
+    if param:
+        used_param = {key: val for key, val in param.items() if val}
+
+        if used_param:
+            parameters = "&".join(
+                ["{}={}".format(key, val) for key, val in used_param.items()]
+            )
+            ext_url = "{}?{}".format(suffix, parameters)
 
     return ext_url
 
@@ -49,15 +52,13 @@ def get_panelapp_response(ext_url: str = None, full_url: str = None):
         request = requests.get(url, headers={"Accept": "application/json"})
     except Exception as e:
         print("Something went wrong: {}".format(e))
-        sys.exit(-1)
-
-    if request.ok:
-        data = json.loads(request.content.decode("utf-8"))
-        return data
     else:
-        print("Error {} for URL: {}".format(request.status_code, url))
-        sys.exit(-1)
-
+        if request.ok:
+            data = json.loads(request.content.decode("utf-8"))
+            return data
+        else:
+            print("Error {} for URL: {}".format(request.status_code, url))
+            return None
 
 def get_full_results_from_API(data: dict):
     """ Get all the results from the API call
