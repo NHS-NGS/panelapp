@@ -44,8 +44,8 @@ def compare_versions(original_panel: Panel, compare_version: str):
         confidence_level=original_panel.confidence_level
     )
 
-    original_genes = original_panel.get_genes()
-    compare_genes = new_panel.get_genes()
+    original_genes = original_panel.get_genes(1, 2, 3)
+    compare_genes = new_panel.get_genes(1, 2, 3)
 
     matches = set(original_genes).intersection(set(compare_genes))
     difference = set(original_genes).symmetric_difference(set(compare_genes))
@@ -84,24 +84,3 @@ def get_all_panels():
         all_panels[panel["id"]] = Panel(panel_id=panel["id"])
 
     return all_panels
-
-
-def get_GMS_panels():
-    """Return all GMS panels to be analyzed in the lab
-
-    Returns:
-        dict: GMS_panels
-    """
-
-    gms_panels = {}
-
-    signedoff_panels = get_all_signedoff_panels()
-    all_panels = get_all_panels()
-
-    for panel_id in all_panels:
-        if panel_id in signedoff_panels:
-            gms_panels[panel_id] = signedoff_panels[panel_id]
-        else:
-            gms_panels[panel_id] = all_panels[panel_id]
-
-    return gms_panels
