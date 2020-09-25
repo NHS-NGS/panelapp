@@ -1,5 +1,6 @@
 import json
 import sys
+import time
 
 import requests
 
@@ -40,6 +41,7 @@ def get_panelapp_response(ext_url: str = None, full_url: str = None):
     Returns:
         dict: Data from the API call
     """
+    session = requests.session()
 
     if full_url:
         url = full_url
@@ -48,17 +50,24 @@ def get_panelapp_response(ext_url: str = None, full_url: str = None):
             ext_url
         )
 
-    try:
-        request = requests.get(url, headers={"Accept": "application/json"})
-    except Exception as e:
-        print("Something went wrong: {}".format(e))
+    for i in range(1,5):
+        backoff = 1
+        try:
+            request = session.get(url, headers={"Accept": "application/json"})
+            break
+        except Exception as e:
+            print("Something went wrong: {}".format(e))
+            print("Trying again {}/5".format(i))
+            time.sleep(backoff)
+            backoff = backoff * 2
+
+    if request.ok:
+        data = json.loads(request.content.decode("utf-8"))
+        return data
     else:
-        if request.ok:
-            data = json.loads(request.content.decode("utf-8"))
-            return data
-        else:
-            print("Error {} for URL: {}".format(request.status_code, url))
-            return None
+        print("Error {} for URL: {}".format(request.status_code, url))
+        return None
+        
 
 def get_full_results_from_API(data: dict):
     """ Get all the results from the API call
