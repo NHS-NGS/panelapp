@@ -42,6 +42,8 @@ class Panel():
             self.version = self.data["version"]
             self.relevant_disorders = self.data["relevant_disorders"]
             self.set_genes()
+            self.set_strs()
+            self.set_cnvs()
 
             if "signed_off" in self.data:
                 self.signedoff = self.data["signed_off"]
@@ -89,9 +91,36 @@ class Panel():
 
         with open(file_path, "w") as f:
             for gene in self.get_genes():
-                f.write("{}\t{}_{}\t{}\n".format(
-                    self.name, self.name, self.version, gene
+                f.write("{}\t{}\t{}\t{}\t{}\t{}\n".format(
+                    self.name, self.id, self.version, self.signedoff,"gene", gene
                 ))
+
+            for str_entity in self.get_strs():
+                if str_entity["confidence_level"] == "3":
+                    f.write(
+                        "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(
+                            self.name, self.id, self.version, self.signedoff, "str",
+                            str_entity["entity_name"],
+                            str_entity["gene_data"]["hgnc_symbol"],
+                            str_entity["repeated_sequence"],
+                            str_entity["normal_repeats"],
+                            str_entity["pathogenic_repeats"],
+                            str_entity["chromosome"],
+                            str_entity["grch37_coordinates"],
+                            str_entity["grch38_coordinates"]
+                        )
+                    )
+
+            for cnv in self.get_cnvs():
+                if cnv["confidence_level"] == "3":
+                    f.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(
+                        self.name, self.id, self.version, self.signedoff, "cnv",
+                        cnv["entity_name"],
+                        cnv["type_of_variants"],
+                        cnv["chromosome"],
+                        cnv["grch37_coordinates"],
+                        cnv["grch38_coordinates"]
+                    ))
 
     def get_name(self):
         """ Return the panel name
@@ -190,9 +219,25 @@ class Panel():
                 for gene in gene_list
             ]
         else:
-            genes_to_return = self.genes[self.confidence_level]
+            if self.confidence_level in self.genes:
+                genes_to_return = self.genes[self.confidence_level]
+            else:
+                return []
+
 
         return genes_to_return
+
+    def set_cnvs(self):
+        self.cnvs = self.data["regions"]
+
+    def get_cnvs(self):
+        return self.cnvs
+
+    def set_strs(self):
+        self.strs = self.data["strs"]
+
+    def get_strs(self):
+        return self.strs
 
     def get_data(self):
         """ Return the full data of the panel. Used for debug mainly
