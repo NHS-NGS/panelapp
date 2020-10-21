@@ -1,5 +1,4 @@
 import json
-import sys
 
 import requests
 
@@ -59,6 +58,7 @@ def get_panelapp_response(ext_url: str = None, full_url: str = None):
         else:
             print("Error {} for URL: {}".format(request.status_code, url))
             return None
+
 
 def get_full_results_from_API(data: dict):
     """ Get all the results from the API call
