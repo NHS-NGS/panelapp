@@ -47,17 +47,20 @@ def get_panelapp_response(ext_url: str = None, full_url: str = None):
             ext_url
         )
 
-    try:
-        request = requests.get(url, headers={"Accept": "application/json"})
-    except Exception as e:
-        print("Something went wrong: {}".format(e))
-    else:
-        if request.ok:
-            data = json.loads(request.content.decode("utf-8"))
-            return data
+    for i in range(0, 5):
+        try:
+            request = requests.get(url, headers={"Accept": "application/json"})
+        except Exception as e:
+            print("Something went wrong: {}".format(e))
         else:
-            print("Error {} for URL: {}".format(request.status_code, url))
-            return None
+            if request.ok:
+                data = json.loads(request.content.decode("utf-8"))
+                return data
+            else:
+                print("Error {} for URL: {}".format(request.status_code, url))
+                return None
+
+    return None
 
 
 def get_full_results_from_API(data: dict):

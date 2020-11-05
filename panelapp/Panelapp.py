@@ -5,8 +5,7 @@ from .api import build_url, get_panelapp_response
 
 class Panel():
     def __init__(
-        self, panel_id: str, version: str = None,
-        confidence_level: str = "3",
+        self, panel_id: str, version: str = None, confidence_level: str = "3"
     ):
         """ Initialise Panel object, call the PanelApp API to get data
 
@@ -14,7 +13,6 @@ class Panel():
             panel_id (str): Panel id
             version (str, optional): Version of the panel to get. Defaults to None.
             confidence_level (str, optional): Confidence level for the genes of the panel. Defaults to None.
-            assign_transcripts (str, optional): File path to the GFF. Defaults to False.
         """
 
         self.id = str(panel_id)
@@ -41,6 +39,7 @@ class Panel():
             self.hash_id = self.data["hash_id"]
             self.version = self.data["version"]
             self.relevant_disorders = self.data["relevant_disorders"]
+            self.setup_superpanel()
             self.set_genes()
             self.set_strs()
             self.set_cnvs()
@@ -49,6 +48,10 @@ class Panel():
                 self.signedoff = self.data["signed_off"]
             else:
                 self.signedoff = False
+
+        elif data is None:
+            print("Data retrieval failed 5 times, exiting...")
+            return None
 
     def update_version(self, version: str, confidence_level: str = "3"):
         """ Update the version and confidence level for the Panel object
@@ -92,14 +95,16 @@ class Panel():
         with open(file_path, "w") as f:
             for gene in self.get_genes():
                 f.write("{}\t{}\t{}\t{}\t{}\t{}\n".format(
-                    self.name, self.id, self.version, self.signedoff,"gene", gene
+                    self.name, self.id, self.version,
+                    self.signedoff, "gene", gene
                 ))
 
             for str_entity in self.get_strs():
                 if str_entity["confidence_level"] == "3":
                     f.write(
                         "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(
-                            self.name, self.id, self.version, self.signedoff, "str",
+                            self.name, self.id, self.version, self.signedoff,
+                            "str",
                             str_entity["entity_name"],
                             str_entity["gene_data"]["hgnc_symbol"],
                             str_entity["repeated_sequence"],
@@ -181,23 +186,24 @@ class Panel():
 
         self.genes = {}
 
-        for gene in self.data["genes"]:
-            if gene["confidence_level"] == "3":
-                self.genes.setdefault("3", []).append(
-                    gene["gene_data"]["hgnc_symbol"]
-                )
-            elif gene["confidence_level"] == "2":
-                self.genes.setdefault("2", []).append(
-                    gene["gene_data"]["hgnc_symbol"]
-                )
-            elif gene["confidence_level"] == "1":
-                self.genes.setdefault("1", []).append(
-                    gene["gene_data"]["hgnc_symbol"]
-                )
-            elif gene["confidence_level"] == "0":
-                self.genes.setdefault("0", []).append(
-                    gene["gene_data"]["hgnc_symbol"]
-                )
+        if self.data["genes"]:
+            for gene in self.data["genes"]:
+                if gene["confidence_level"] == "3":
+                    self.genes.setdefault("3", []).append(
+                        gene["gene_data"]["hgnc_symbol"]
+                    )
+                elif gene["confidence_level"] == "2":
+                    self.genes.setdefault("2", []).append(
+                        gene["gene_data"]["hgnc_symbol"]
+                    )
+                elif gene["confidence_level"] == "1":
+                    self.genes.setdefault("1", []).append(
+                        gene["gene_data"]["hgnc_symbol"]
+                    )
+                elif gene["confidence_level"] == "0":
+                    self.genes.setdefault("0", []).append(
+                        gene["gene_data"]["hgnc_symbol"]
+                    )
 
     def get_genes(self, *confidence_levels: str):
         """ Return list of genes
@@ -224,23 +230,37 @@ class Panel():
             else:
                 return []
 
-
         return genes_to_return
 
     def set_cnvs(self):
-        self.cnvs = self.data["regions"]
+        """ Setup the cnvs """
+
+        if self.data["regions"]:
+            self.cnvs = self.data["regions"]
+        else:
+            self.cnvs = []
 
     def get_cnvs(self):
+        """ Return cnvs
+
+        Returns:
+            dict: [description]
+        """
         return self.cnvs
 
     def set_strs(self):
-        self.strs = self.data["strs"]
+        """ Setup the strs """
+
+        if self.data["strs"]:
+            self.strs = self.data["strs"]
+        else:
+            self.strs = []
 
     def get_strs(self):
         return self.strs
 
     def get_data(self):
-        """ Return the full data of the panel. Used for debug mainly
+        """ Return the all the data returned by the panel query
 
         Returns:
             dict: Dict of all the data of the panel
@@ -272,6 +292,66 @@ class Panel():
 
         return self.signedoff
 
+    def is_superpanel(self):
+        """ Return superpanel status of the panel
+
+        Returns:
+            bool: Superpanel status
+        """
+
+        return self.superpanel
+
+    def setup_superpanel(self):
+        """ Assign the subpanels and the superpanel attributes """
+
+        self.superpanel = False
+        self.subpanels = set()
+
+        if self.data["genes"]:
+            if "panel" in self.data["genes"][0]:
+                self.superpanel = True
+                self.subpanels.update([
+                    (
+                        gene["panel"]["id"],
+                        gene["panel"]["name"],
+                        gene["panel"]["version"]
+                    )
+                    for gene in self.data["genes"]
+                ])
+
+        if self.data["strs"]:
+            if "panel" in self.data["strs"][0]:
+                self.superpanel = True
+                self.subpanels.update([
+                    (
+                        gene["panel"]["id"],
+                        gene["panel"]["name"],
+                        gene["panel"]["version"]
+                    )
+                    for gene in self.data["genes"]
+                ])
+
+        if self.data["regions"]:
+            if "panel" in self.data["regions"][0]:
+                self.superpanel = True
+                self.subpanels.update([
+                    (
+                        gene["panel"]["id"],
+                        gene["panel"]["name"],
+                        gene["panel"]["version"]
+                    )
+                    for gene in self.data["genes"]
+                ])
+
+    def get_subpanels(self):
+        """ Return subpanels of the superpanel
+
+        Returns:
+            set: Set of tuples containing panel_id, panel_name, panel_version
+        """
+
+        return self.subpanels
+
     def __str__(self):
         """ Return a string with basic info on the panel
 
@@ -279,9 +359,10 @@ class Panel():
             str: String with panel name, id, version and signedoff date
         """
 
-        return "{}: id={}; version={}; signedoff={}".format(
+        return "{}: id={}; version={}; signedoff={}; is_superpanel={}".format(
             self.name,
             self.id,
             self.version,
-            self.signedoff
+            self.signedoff,
+            self.superpanel
         )
