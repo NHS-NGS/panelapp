@@ -214,14 +214,15 @@ class Panel():
         """
 
         if confidence_levels:
-            genes_to_return = []
+            genes = []
 
             for level in confidence_levels:
-                genes_to_return.append(self.genes[str(level)])
+                if str(level) in self.genes:
+                    genes.append(self.genes[str(level)])
 
             genes_to_return = [
                 gene
-                for gene_list in genes_to_return
+                for gene_list in genes
                 for gene in gene_list
             ]
         else:
@@ -244,8 +245,9 @@ class Panel():
         """ Return cnvs
 
         Returns:
-            dict: [description]
+            dict: Dict of cnvs data
         """
+
         return self.cnvs
 
     def set_strs(self):
@@ -257,6 +259,12 @@ class Panel():
             self.strs = []
 
     def get_strs(self):
+        """ Return strs
+
+        Returns:
+            dict: Dict of strs data
+        """
+
         return self.strs
 
     def get_data(self):
