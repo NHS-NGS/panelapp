@@ -28,8 +28,7 @@ panel.get_genes(3, 2, 1)           # Return genes with confidence levels 3, 2, 1
 panel.update_version("3.2", "2")   # Update the panel with version and confidence level given
 panel.is_signedoff()               # Return date of signedoff or False if not signedoff
 panel.get_data()                   # Return all the data the API sent, you can use that there's something that is lacking in my methods
-
-# There's a few other bits, go look at the code, it's not complicated
+panel.write()                      # Write a file for the panel containing the most important data (according to me at least, you can customize this yourself using the .get_data() method)
 
 from panelapp import queries
 
