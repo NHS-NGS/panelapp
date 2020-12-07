@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 
 from .api import build_url, get_panelapp_response
 
@@ -77,11 +77,8 @@ class Panel():
         else:
             output_folder = "{}".format(path)
 
-        if not os.path.exists(output_folder):
-            os.mkdir(output_folder)
-        else:
-            if not os.path.isdir(output_folder):
-                os.mkdir(output_folder)
+        if not Path(output_folder).is_dir():
+            Path(output_folder).mkdir()
 
         panel_name = self.name.replace(" - ", " ")
         panel_name = panel_name.replace("-", " ")
@@ -93,20 +90,21 @@ class Panel():
         )
 
         with open(file_path, "w") as f:
-            for gene in self.get_genes():
-                f.write("{}\t{}\t{}\t{}\t{}\t{}\n".format(
+            for gene, hgnc_id in self.get_genes():
+                f.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(
                     self.name, self.id, self.version,
-                    self.signedoff, "gene", gene
+                    self.signedoff, "gene", gene, hgnc_id
                 ))
 
             for str_entity in self.get_strs():
                 if str_entity["confidence_level"] == "3":
                     f.write(
-                        "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(
+                        "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(
                             self.name, self.id, self.version, self.signedoff,
                             "str",
                             str_entity["entity_name"],
                             str_entity["gene_data"]["hgnc_symbol"],
+                            str_entity["gene_data"]["hgnc_id"],
                             str_entity["repeated_sequence"],
                             str_entity["normal_repeats"],
                             str_entity["pathogenic_repeats"],
@@ -189,21 +187,25 @@ class Panel():
         if self.data["genes"]:
             for gene in self.data["genes"]:
                 if gene["confidence_level"] == "3":
-                    self.genes.setdefault("3", []).append(
-                        gene["gene_data"]["hgnc_symbol"]
-                    )
+                    self.genes.setdefault("3", []).append((
+                        gene["gene_data"]["hgnc_symbol"],
+                        gene["gene_data"]["hgnc_id"]
+                    ))
                 elif gene["confidence_level"] == "2":
-                    self.genes.setdefault("2", []).append(
-                        gene["gene_data"]["hgnc_symbol"]
-                    )
+                    self.genes.setdefault("2", []).append((
+                        gene["gene_data"]["hgnc_symbol"],
+                        gene["gene_data"]["hgnc_id"]
+                    ))
                 elif gene["confidence_level"] == "1":
-                    self.genes.setdefault("1", []).append(
-                        gene["gene_data"]["hgnc_symbol"]
-                    )
+                    self.genes.setdefault("1", []).append((
+                        gene["gene_data"]["hgnc_symbol"],
+                        gene["gene_data"]["hgnc_id"]
+                    ))
                 elif gene["confidence_level"] == "0":
-                    self.genes.setdefault("0", []).append(
-                        gene["gene_data"]["hgnc_symbol"]
-                    )
+                    self.genes.setdefault("0", []).append((
+                        gene["gene_data"]["hgnc_symbol"],
+                        gene["gene_data"]["hgnc_id"]
+                    ))
 
     def get_genes(self, *confidence_levels: str):
         """ Return list of genes
