@@ -187,40 +187,46 @@ class Panel():
         if self.data["genes"]:
             for gene in self.data["genes"]:
                 if gene["confidence_level"] == "3":
-                    self.genes.setdefault("3", []).append((
-                        gene["gene_data"]["hgnc_symbol"],
-                        gene["gene_data"]["hgnc_id"]
-                    ))
+                    self.genes.setdefault("3", []).append(
+                        setup_gene(gene)
+                    )
                 elif gene["confidence_level"] == "2":
-                    self.genes.setdefault("2", []).append((
-                        gene["gene_data"]["hgnc_symbol"],
-                        gene["gene_data"]["hgnc_id"]
-                    ))
+                    self.genes.setdefault("2", []).append(
+                        setup_gene(gene)
+                    )
                 elif gene["confidence_level"] == "1":
-                    self.genes.setdefault("1", []).append((
-                        gene["gene_data"]["hgnc_symbol"],
-                        gene["gene_data"]["hgnc_id"]
-                    ))
+                    self.genes.setdefault("1", []).append(
+                        setup_gene(gene)
+                    )
                 elif gene["confidence_level"] == "0":
-                    self.genes.setdefault("0", []).append((
-                        gene["gene_data"]["hgnc_symbol"],
-                        gene["gene_data"]["hgnc_id"]
-                    ))
+                    self.genes.setdefault("0", []).append(
+                        setup_gene(gene)
+                    )
 
-    def get_genes(self, *confidence_levels: str):
-        """ Return list of genes
-        Can type 1,2,3 to get genes with appropriate confidence level to return
+    def select_from_genes(self, key, *confidence_levels):
+        """ Select correct data to return from the self.genes dict
+
+        Args:
+            key (str): Key of data to return ("symbol", "hgnc_id", "ensembl_id")
 
         Returns:
-            list: List of genes
+            list: List of symbol or ids to return
         """
+        genes_to_return = []
 
         if confidence_levels:
             genes = []
 
             for level in confidence_levels:
                 if str(level) in self.genes:
-                    genes.append(self.genes[str(level)])
+                    if key is not None:
+                        genes.append([
+                            gene[key]
+                            for gene in self.genes[str(level)]
+                            if key in gene
+                        ])
+                    else:
+                        genes.append(self.genes[str(level)])
 
             genes_to_return = [
                 gene
@@ -229,11 +235,72 @@ class Panel():
             ]
         else:
             if self.confidence_level in self.genes:
-                genes_to_return = self.genes[self.confidence_level]
+                if key is not None:
+                    genes_to_return = [
+                        gene[key]
+                        for gene in self.genes[str(self.confidence_level)]
+                        if key in gene
+                    ]
+                else:
+                    genes_to_return = self.genes[str(self.confidence_level)]
             else:
                 return []
 
         return genes_to_return
+
+    def get_genes(self, *confidence_levels: str):
+        """ Return gene symbols + gene ids
+
+        Returns:
+            list: List of dict with all the data for the genes
+        """
+
+        return self.select_from_genes(None, *confidence_levels)
+
+    def get_gene_symbols(self, *confidence_levels: str):
+        """ Return list of gene symbols
+        Can type 0,1,2,3 to get genes with appropriate confidence level to return
+
+        Returns:
+            list: List of gene symbols
+        """
+
+        return self.select_from_genes("symbol", *confidence_levels)
+
+    def get_hgnc_ids(self, *confidence_levels: str):
+        """ Return list of hgnc_ids
+        Can type 0,1,2,3 to get genes with appropriate confidence level to return
+
+        Returns:
+            list: List of hgnc ids
+        """
+
+        return self.select_from_genes("hgnc_id", *confidence_levels)
+
+    def get_ensembl_ids(self, build, *confidence_levels: str):
+        """ Return list of ensembl ids with build key if no build is not passed
+        Can type 0,1,2,3 to get genes with appropriate confidence level to return
+
+        Args:
+            build (str): Build = "GRCh37", "GRCh38"
+
+        Returns:
+            list: List of ensembl ids
+        """
+
+        ensembl_ids = self.select_from_genes(
+            "ensembl_id", *confidence_levels
+        )
+
+        if build is not None:
+            ensembl_ids_to_return = [
+                ensembl_id[build]
+                for ensembl_id in ensembl_ids
+            ]
+        else:
+            ensembl_ids_to_return = ensembl_ids
+
+        return ensembl_ids_to_return
 
     def set_cnvs(self):
         """ Setup the cnvs """
@@ -286,7 +353,7 @@ class Panel():
         """
 
         info = {
-            "green_genes": len(self.genes["3"]),
+            "green_genes": len(self.symbols["3"]),
             "entity_types": self.data["stats"]
         }
 
@@ -376,3 +443,37 @@ class Panel():
             self.signedoff,
             self.superpanel
         )
+
+
+def setup_gene(gene_data):
+    """ Create dict of data to be added in self.genes. Will contain symbol,
+    hgnc id, ensembl id (if provide by panelapp)
+
+    Args:
+        gene_data (dict): Dict of all the gene data in Panelapp for given gene
+
+    Returns:
+        dict: Dict containing gene symbol, hgnc id, ensembl id if in Panelapp
+    """
+    data = {
+        "symbol": gene_data["gene_data"]["hgnc_symbol"],
+        "hgnc_id": gene_data["gene_data"]["hgnc_id"],
+    }
+
+    if "ensembl_genes" in gene_data["gene_data"]:
+        if gene_data["gene_data"]["ensembl_genes"]:
+            # after the following keys
+            # ["gene_data"]["ensembl_genes"]["GRch37"], there is
+            # another key to denote the ensembl version
+            data["ensembl_id"] = {
+                "GRCh37": "".join([
+                    data["ensembl_id"]
+                    for version, data in gene_data["gene_data"]["ensembl_genes"]["GRch37"].items()
+                ]),
+                "GRCh38": "".join([
+                    data["ensembl_id"]
+                    for version, data in gene_data["gene_data"]["ensembl_genes"]["GRch38"].items()
+                ])
+            }
+
+    return data
