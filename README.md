@@ -23,8 +23,11 @@ from panelapp import Panelapp
 
 panel = Panelapp.Panel(269)        # Create panel object, confidence level defaults to 3, version is the lastest
 panel.get_info()                   # Return dict with general data about the panel
-panel.get_genes()                  # Return genes according to confidence level choosen when creating the panel object
-panel.get_genes(3, 2, 1)           # Return genes with confidence levels 3, 2, 1 (green, amber, red)
+# For the 4 following methods you can specify the confidence levels
+panel.get_genes()                  # Return all the gene symbols/ids
+panel.get_gene_symbols()           # Return gene symbols according to confidence level choosen when creating the panel object
+panel.get_hgnc_ids()               # Return hgnc ids according to confidence level choosen when creating the panel object
+panel.get_ensembl_ids("GRCh37")    # Return ensembl ids according to confidence level choosen when creating the panel object
 panel.update_version("3.2", "2")   # Update the panel with version and confidence level given
 panel.is_signedoff()               # Return date of signedoff or False if not signedoff
 panel.get_data()                   # Return all the data the API sent, you can use that there's something that is lacking in my methods
