@@ -44,8 +44,8 @@ def compare_versions(original_panel: Panel, compare_version: str):
         confidence_level=original_panel.confidence_level
     )
 
-    original_genes = original_panel.get_genes(1, 2, 3)
-    compare_genes = new_panel.get_genes(1, 2, 3)
+    original_genes = original_panel.get_hgnc_ids(1, 2, 3)
+    compare_genes = new_panel.get_hgnc_ids(1, 2, 3)
 
     matches = set(original_genes).intersection(set(compare_genes))
     difference = set(original_genes).symmetric_difference(set(compare_genes))
