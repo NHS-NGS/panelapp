@@ -225,8 +225,6 @@ class Panel():
                         for gene in self.genes[str(level)]
                         if key in gene
                     ])
-                else:
-                    genes.append(self.genes[str(level)])
 
             genes_to_return = [
                 gene
@@ -240,8 +238,6 @@ class Panel():
                     for gene in self.genes[str(self.confidence_level)]
                     if key in gene
                 ]
-            else:
-                genes_to_return = self.genes[str(self.confidence_level)]
 
         return genes_to_return
 
