@@ -219,6 +219,11 @@ class Panel():
             genes = []
 
             for level in confidence_levels:
+                assert level in [0, 1, 2, 3], (
+                    "Choose among the following levels: 3 (green), 2 (amber), "
+                    "1 (red), 0 (the rest)"
+                )
+
                 if str(level) in self.genes:
                     genes.append([
                         gene[key]
@@ -254,6 +259,11 @@ class Panel():
             genes = []
 
             for level in confidence_levels:
+                assert level in [0, 1, 2, 3], (
+                    "Choose among the following levels: 3 (green), 2 (amber), "
+                    "1 (red), 0 (the rest)"
+                )
+
                 if str(level) in self.genes:
                     genes.append(self.genes[str(level)])
 
@@ -300,6 +310,11 @@ class Panel():
         Returns:
             list: List of ensembl ids
         """
+
+        assert build in ["GRCh37", "GRCh38"], (
+            "Choose among 'GRCh37' and 'GRCh38' and then specify the "
+            "confidence levels"
+        )
 
         ensembl_ids = self.select_from_genes(
             "ensembl_id", *confidence_levels
