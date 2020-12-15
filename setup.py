@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="panelapp",
-    version="0.7.1",
+    version="0.7.2",
     author="Yujin Kim",
     author_email="yujin.kim@hotmail.fr",
     description="General purpose Panelapp package",
