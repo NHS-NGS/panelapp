@@ -90,10 +90,13 @@ class Panel():
         )
 
         with open(file_path, "w") as f:
-            for gene, hgnc_id in self.get_genes():
+            for gene_data in self.get_genes():
+                symbol = gene_data["symbol"]
+                hgnc_id = gene_data["hgnc_id"]
+
                 f.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(
                     self.name, self.id, self.version,
-                    self.signedoff, "gene", gene, hgnc_id
+                    self.signedoff, "gene", symbol, hgnc_id
                 ))
 
             for str_entity in self.get_strs():
