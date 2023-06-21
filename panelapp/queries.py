@@ -64,7 +64,7 @@ def get_signedoff_panel(panel_id: str):
     """
 
     signedoff_panel = get_panelapp_response(
-        ext_url="panels/signedoff/{}".format(panel_id)
+        ext_url="panels/signedoff/?id={}".format(panel_id)
     )
     return signedoff_panel
 
