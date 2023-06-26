@@ -36,7 +36,7 @@ panel.write()                      # Write a file for the panel containing the m
 from panelapp import queries
 
 panels = queries.get_all_panels()                                         # Return dict {panel_id: Panelapp.Panel} of all panels in Panelapp
-signedoff_panels = queries.get_all_signedoff_panels()                     # Return dict {panel_id: Panelapp.Panel} of signedoff panels
+signedoff_panels = queries.get_all_signedoff_panels()                     # Return dict {panel_id: Panelapp.Panel} of signedoff panels. Note that this only returns the latest versions on public panels.
 matches, differences = queries.compare_versions(Panelapp.Panel, "2.7")    # Return tuple of match and differences between the given panel and another panel version
 panel = queries.get_signedoff_panel(269)                                  # Return panel object with latest signedoff version
 ```

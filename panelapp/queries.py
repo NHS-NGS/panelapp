@@ -54,7 +54,7 @@ def compare_versions(original_panel: Panel, compare_version: str):
 
 
 def get_signedoff_panel(panel_id: str):
-    """ Return data of signedoff panel
+    """ Return data for the latest version of a signedoff panel
 
     Args:
         panel_id (str): Panel id
@@ -64,7 +64,7 @@ def get_signedoff_panel(panel_id: str):
     """
 
     signedoff_panel = get_panelapp_response(
-        ext_url="panels/signedoff/?id={}".format(panel_id)
+        ext_url="panels/signedoff/?panel_id={}".format(panel_id)
     )
     return signedoff_panel
 
