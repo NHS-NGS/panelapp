@@ -1,11 +1,9 @@
-import pytest
-
 from panelapp.queries import get_signedoff_panel
 
 
 class TestGetSignedOffPanel:
     """
-    Note that these tests currently use real API calls, instead of mock data.
+    Note that these tests currently use the outputs of real API calls, instead of mocking the API calls out.
     Therefore they will need updating as the contents of Panelapp change.
     """
     def test_real_panel(self):
@@ -72,6 +70,4 @@ class TestGetSignedOffPanel:
         panel_id = "a_nonsense_string"
 
         assert get_signedoff_panel(panel_id) == None
-
-
 
