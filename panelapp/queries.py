@@ -3,7 +3,7 @@ from .Panelapp import Panel
 
 
 def get_all_signedoff_panels(confidence_level: str = "3"):
-    """ Return list of signedoff panel objects
+    """Return list of signedoff panel objects
 
     Args:
         confidence_level (str, optional): Specify. Defaults to "3".
@@ -21,14 +21,14 @@ def get_all_signedoff_panels(confidence_level: str = "3"):
         panels[data["id"]] = Panel(
             panel_id=data["id"],
             version=data["version"],
-            confidence_level=confidence_level
+            confidence_level=confidence_level,
         )
 
     return panels
 
 
 def compare_versions(original_panel: Panel, compare_version: str):
-    """ Return matches and differences in the genes in the version given
+    """Return matches and differences in the genes in the version given
 
     Args:
         original_panel (Panel object): Panel object to compare
@@ -41,7 +41,7 @@ def compare_versions(original_panel: Panel, compare_version: str):
     new_panel = Panel(
         panel_id=original_panel.id,
         version=compare_version,
-        confidence_level=original_panel.confidence_level
+        confidence_level=original_panel.confidence_level,
     )
 
     original_genes = original_panel.get_hgnc_ids(1, 2, 3)
@@ -54,7 +54,7 @@ def compare_versions(original_panel: Panel, compare_version: str):
 
 
 def get_all_panels():
-    """ Returns all panels
+    """Returns all panels
 
     Returns:
         dict: All panels in Panelapp
