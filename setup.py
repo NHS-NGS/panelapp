@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="panelapp",
-    version="0.7.4",
+    version="0.7.5",
     author="Yujin Kim",
     author_email="yujin.kim@hotmail.fr",
     description="General purpose Panelapp package",
@@ -18,6 +18,6 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    python_requires='>=3.5',
+    python_requires=">=3.6",
     py_modules=["requests"],
 )
