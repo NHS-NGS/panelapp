@@ -129,11 +129,11 @@ class Panel:
                         f"{self.version}\t"
                         f"{self.signedoff}\t"
                         "cnv\t"
-                        f"{cnv["entity_name"]}\t"
-                        f"{cnv["type_of_variants"]}\t"
-                        f"{cnv["chromosome"]}\t"
-                        f"{cnv["grch37_coordinates"]}\t"
-                        f"{cnv["grch38_coordinates"]}\n"
+                        f"{cnv['entity_name']}\t"
+                        f"{cnv['type_of_variants']}\t"
+                        f"{cnv['chromosome']}\t"
+                        f"{cnv['grch37_coordinates']}\t"
+                        f"{cnv['grch38_coordinates']}\n"
                     )
 
     def get_name(self):
