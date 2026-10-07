@@ -1,10 +1,11 @@
 import json
+import time
 
 import requests
 
 
 def build_url(path: list, param: dict = None):
-    """ Builds external url path with parameters
+    """Builds external url path with parameters
 
     Args:
         path (list): List with path that is going to be separated with "/"
@@ -29,8 +30,13 @@ def build_url(path: list, param: dict = None):
     return ext_url
 
 
-def get_panelapp_response(ext_url: str = None, full_url: str = None):
-    """ Make an API query
+def get_panelapp_response(
+    ext_url: str = "",
+    full_url: str = "",
+    attempt: int = 0,
+    attempt_limit: int = 10,
+):
+    """Make an API query
 
     Args:
         ext_url (str, optional): External path for the URL to add to the base URL. Defaults to None.
@@ -57,14 +63,24 @@ def get_panelapp_response(ext_url: str = None, full_url: str = None):
                 data = json.loads(request.content.decode("utf-8"))
                 return data
             else:
-                print("Error {} for URL: {}".format(request.status_code, url))
-                return None
+                if request.status_code == 429:
+                    assert (
+                        attempt != attempt_limit
+                    ), "Reached the attempt limit for the GEL querying limit"
 
-    return None
+                    time.sleep(10)
+                    return get_panelapp_response(
+                        ext_url, full_url, attempt + 1
+                    )
+
+                print("Error {} for URL: {}".format(request.status_code, url))
+                return {}
+
+    return {}
 
 
 def get_full_results_from_API(data: dict):
-    """ Get all the results from the API call
+    """Get all the results from the API call
 
     Panelapp API doesn't show all the results.
     Instead, it returns another URL to point to the next page.
