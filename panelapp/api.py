@@ -3,8 +3,8 @@ import json
 import requests
 
 
-def build_url(path: list, param: dict = None):
-    """ Builds external url path with parameters
+def build_url(path: list, param: dict = {}):
+    """Builds external url path with parameters
 
     Args:
         path (list): List with path that is going to be separated with "/"
@@ -15,22 +15,22 @@ def build_url(path: list, param: dict = None):
     """
 
     suffix = "/".join(path)
-    ext_url = "{}".format(suffix)
+    ext_url = suffix
 
     if param:
         used_param = {key: val for key, val in param.items() if val}
 
         if used_param:
             parameters = "&".join(
-                ["{}={}".format(key, val) for key, val in used_param.items()]
+                [f"{key}={val}" for key, val in used_param.items()]
             )
-            ext_url = "{}?{}".format(suffix, parameters)
+            ext_url = f"{suffix}?{parameters}"
 
     return ext_url
 
 
-def get_panelapp_response(ext_url: str = None, full_url: str = None):
-    """ Make an API query
+def get_panelapp_response(ext_url: str = "", full_url: str = ""):
+    """Make an API query
 
     Args:
         ext_url (str, optional): External path for the URL to add to the base URL. Defaults to None.
@@ -43,28 +43,26 @@ def get_panelapp_response(ext_url: str = None, full_url: str = None):
     if full_url:
         url = full_url
     else:
-        url = "https://panelapp.genomicsengland.co.uk/api/v1/{}".format(
-            ext_url
-        )
+        url = f"https://panelapp.genomicsengland.co.uk/api/v1/{ext_url}"
 
-    for i in range(0, 5):
+    for i in range(5):
         try:
             request = requests.get(url, headers={"Accept": "application/json"})
         except Exception as e:
-            print("Something went wrong: {}".format(e))
+            print(f"Something went wrong: {e}")
         else:
             if request.ok:
                 data = json.loads(request.content.decode("utf-8"))
                 return data
             else:
-                print("Error {} for URL: {}".format(request.status_code, url))
+                print(f"Error {request.status_code} for URL: {url}")
                 return None
 
     return None
 
 
 def get_full_results_from_API(data: dict):
-    """ Get all the results from the API call
+    """Get all the results from the API call
 
     Panelapp API doesn't show all the results.
     Instead, it returns another URL to point to the next page.
