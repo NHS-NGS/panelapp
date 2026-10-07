@@ -66,7 +66,7 @@ def get_panelapp_response(
                 if request.status_code == 429:
                     assert (
                         attempt != attempt_limit
-                    ), "Reached the attempt limit for the GEL querying limit"
+                    ), f"Reached the attempt limit ({attempt_limit}) for the GEL querying limit"
 
                     time.sleep(10)
                     return get_panelapp_response(
